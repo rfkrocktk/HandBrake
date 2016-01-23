@@ -187,7 +187,7 @@
     <value>Show Queue</value>
   </data>
   <data name="MainView_Source" xml:space="preserve">
-    <value>Source</value>
+    <value>Open Source</value>
   </data>
   <data name="MainView_StartEncode" xml:space="preserve">
     <value>Start Encode</value>
@@ -736,7 +736,7 @@
     <value>Disable LibDVDNav. (libdvdread will be used instead)</value>
   </data>
   <data name="Options_DXVA" xml:space="preserve">
-    <value>Enable DXVA Hardware Accelerated Decoding (Experimental)"</value>
+    <value>Enable DXVA Hardware Accelerated Decoding</value>
   </data>
   <data name="Options_Format" xml:space="preserve">
     <value>Format:</value>
@@ -839,5 +839,11 @@
   </data>
   <data name="Options_PauseQueueOnLowDiskSpace" xml:space="preserve">
     <value>Pause queue if disk space is low before starting a job.</value>
+  </data>
+  <data name="FiltersView_FlipVideo" xml:space="preserve">
+    <value>Flip</value>
+  </data>
+  <data name="FiltersView_Rotate" xml:space="preserve">
+    <value>Rotate:</value>
   </data>
 </root>

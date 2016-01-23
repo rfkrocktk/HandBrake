@@ -13,6 +13,7 @@ namespace HandBrakeWPF.Services.Presets.Factories
     using System.Collections.ObjectModel;
     using System.Globalization;
     using System.Linq;
+    using System.Windows.Forms.VisualStyles;
 
     using HandBrake.ApplicationServices.Interop.Json.Presets;
     using HandBrake.ApplicationServices.Interop.Model;
@@ -247,6 +248,21 @@ namespace HandBrakeWPF.Services.Presets.Factories
                     break;
             }
 
+            // Rotation and Flip
+            if (!string.IsNullOrEmpty(importedPreset.PictureRotate))
+            {
+                string[] rotation = importedPreset.PictureRotate.Split(':');
+                if (rotation.Length == 2)
+                {
+                    int rotate;
+                    if (int.TryParse(rotation[0], out rotate))
+                    {
+                        preset.Task.Rotation = int.Parse(rotation[0]);
+                        preset.Task.FlipVideo = rotation[1] == "1";
+                    }
+                }
+            }
+
             /* Video Settings */
             preset.Task.VideoEncoder = EnumHelper<VideoEncoder>.GetValue(importedPreset.VideoEncoder);
             preset.Task.VideoBitrate = importedPreset.VideoAvgBitrate;
@@ -404,7 +420,6 @@ namespace HandBrakeWPF.Services.Presets.Factories
             // public bool PictureLooseCrop { get; set; }
             // public int PicturePARWidth { get; set; }
             // public int PicturePARHeight { get; set; }
-            // public int PictureRotate { get; set; }
             // public int PictureForceHeight { get; set; }
             // public int PictureForceWidth { get; set; }
             // public List<object> ChildrenArray { get; set; }
@@ -538,7 +553,7 @@ namespace HandBrakeWPF.Services.Presets.Factories
             preset.PicturePARHeight = export.Task.PixelAspectY;
             preset.PicturePARWidth = export.Task.PixelAspectX; 
             preset.PictureRightCrop = export.Task.Cropping.Right;
-            preset.PictureRotate = 0; // TODO Not supported yet.
+            preset.PictureRotate = string.Format("{0}:{1}", export.Task.Rotation, export.Task.FlipVideo ? "1" : "0");
             preset.PictureTopCrop = export.Task.Cropping.Top;
             preset.PictureWidth = preset.UsesPictureSettings >= 1 ? export.Task.MaxWidth : 0; // TODO
             preset.PictureDARWidth = export.Task.DisplayWidth.HasValue ? (int)export.Task.DisplayWidth.Value : 0;

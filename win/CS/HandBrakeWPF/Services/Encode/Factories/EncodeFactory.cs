@@ -398,31 +398,12 @@ namespace HandBrakeWPF.Services.Encode.Factories
                                 FilterList = new List<Filter>(),
                             };
 
+            // Note, order is important.
+
             // Detelecine
             if (job.Detelecine != Detelecine.Off)
             {
                 Filter filterItem = new Filter { ID = (int)hb_filter_ids.HB_FILTER_DETELECINE, Settings = job.CustomDetelecine };
-                filter.FilterList.Add(filterItem);
-            }
-
-            // Decomb
-            if (job.DeinterlaceFilter == DeinterlaceFilter.Decomb)
-            {
-                string options;
-                if (job.Decomb == Decomb.Fast)
-                {
-                    options = "7:2:6:9:1:80";
-                }
-                else if (job.Decomb == Decomb.Bob)
-                {
-                    options = "455";
-                }
-                else
-                {
-                    options = job.CustomDecomb;
-                }
-
-                Filter filterItem = new Filter { ID = (int)hb_filter_ids.HB_FILTER_DECOMB, Settings = options };
                 filter.FilterList.Add(filterItem);
             }
 
@@ -455,29 +436,24 @@ namespace HandBrakeWPF.Services.Encode.Factories
                 filter.FilterList.Add(filterItem);
             }
 
-            // VFR / CFR
-            int fm = job.FramerateMode == FramerateMode.CFR ? 1 : job.FramerateMode == FramerateMode.PFR ? 2 : 0;
-            int? num = null, den = null;
-            if (job.Framerate != null)
+            // Decomb
+            if (job.DeinterlaceFilter == DeinterlaceFilter.Decomb)
             {
-                IntPtr frameratePrt = Marshal.StringToHGlobalAnsi(job.Framerate.Value.ToString(CultureInfo.InvariantCulture));
-                int vrate = HBFunctions.hb_video_framerate_get_from_name(frameratePrt);
-
-                if (vrate > 0)
+                string options;
+                if (job.Decomb == Decomb.Fast)
                 {
-                    num = 27000000;
-                    den = vrate;
+                    options = "7:2:6:9:1:80";
                 }
-            }
+                else if (job.Decomb == Decomb.Bob)
+                {
+                    options = "455";
+                }
+                else
+                {
+                    options = job.CustomDecomb;
+                }
 
-            string framerateString = num.HasValue ? string.Format("{0}:{1}:{2}", fm, num, den) : string.Format("{0}", fm); // filter_cfr, filter_vrate.num, filter_vrate.den
-            Filter framerateShaper = new Filter { ID = (int)hb_filter_ids.HB_FILTER_VFR, Settings = framerateString };
-            filter.FilterList.Add(framerateShaper);
-
-            // Deblock
-            if (job.Deblock >= 5)
-            {
-                Filter filterItem = new Filter { ID = (int)hb_filter_ids.HB_FILTER_DEBLOCK, Settings = job.Deblock.ToString() };
+                Filter filterItem = new Filter { ID = (int)hb_filter_ids.HB_FILTER_DECOMB, Settings = options };
                 filter.FilterList.Add(filterItem);
             }
 
@@ -503,9 +479,10 @@ namespace HandBrakeWPF.Services.Encode.Factories
                 filter.FilterList.Add(filterItem);
             }
 
-            if (job.Grayscale)
+            // Deblock
+            if (job.Deblock >= 5)
             {
-                Filter filterItem = new Filter { ID = (int)hb_filter_ids.HB_FILTER_GRAYSCALE, Settings = null };
+                Filter filterItem = new Filter { ID = (int)hb_filter_ids.HB_FILTER_DEBLOCK, Settings = job.Deblock.ToString() };
                 filter.FilterList.Add(filterItem);
             }
 
@@ -525,8 +502,38 @@ namespace HandBrakeWPF.Services.Encode.Factories
             };
             filter.FilterList.Add(cropScale);
 
+            // Grayscale
+            if (job.Grayscale)
+            {
+                Filter filterItem = new Filter { ID = (int)hb_filter_ids.HB_FILTER_GRAYSCALE, Settings = null };
+                filter.FilterList.Add(filterItem);
+            }
+
             // Rotate
-            /* TODO  NOT SUPPORTED YET. */
+            if (job.Rotation != 0 || job.FlipVideo)
+            {
+                Filter filterItem = new Filter { ID = (int)hb_filter_ids.HB_FILTER_ROTATE, Settings = string.Format("{0}:{1}", job.Rotation, job.FlipVideo ? "1" : "0") };
+                filter.FilterList.Add(filterItem);
+            }
+
+            // Framerate shaping filter
+            int fm = job.FramerateMode == FramerateMode.CFR ? 1 : job.FramerateMode == FramerateMode.PFR ? 2 : 0;
+            int? num = null, den = null;
+            if (job.Framerate != null)
+            {
+                IntPtr frameratePrt = Marshal.StringToHGlobalAnsi(job.Framerate.Value.ToString(CultureInfo.InvariantCulture));
+                int vrate = HBFunctions.hb_video_framerate_get_from_name(frameratePrt);
+
+                if (vrate > 0)
+                {
+                    num = 27000000;
+                    den = vrate;
+                }
+            }
+
+            string framerateString = num.HasValue ? string.Format("{0}:{1}:{2}", fm, num, den) : string.Format("{0}", fm); // filter_cfr, filter_vrate.num, filter_vrate.den
+            Filter framerateShaper = new Filter { ID = (int)hb_filter_ids.HB_FILTER_VFR, Settings = framerateString };
+            filter.FilterList.Add(framerateShaper);
 
             return filter;
         }
